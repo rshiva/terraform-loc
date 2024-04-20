@@ -9,6 +9,7 @@ variable "env_prefix" {}
 variable "my_ip" {}
 variable "instance_type" {}
 variable "public_key_path" {}
+variable "private_key_path" {}
 
 
 resource "aws_vpc" "myapp_vpc" {
@@ -141,7 +142,29 @@ resource "aws_instance" "myapp_instance" {
   key_name = aws_key_pair.myapp_ssh_key.key_name
 
   # installing package in ec2
-  user_data = file("entry-script.sh")
+  # user_data = file("entry-script.sh")
+
+  connection {
+    type        = "ssh"
+    host        = self.public_ip
+    user        = "ubuntu"
+    private_key = file(var.private_key_path)
+  }
+
+  provisioner "file" {
+    source      = "entry-script.sh"
+    destination = "/home/ubuntu/entry-script.sh"
+  }
+
+  provisioner "remote-exec" {
+    script = file("entry-script.sh")
+  }
+
+  provisioner "local-exec" {
+    command = "echo ${self.public_ip} > output.txt"
+
+  }
+
 
   tags = {
     Name : "${var.env_prefix}-server"
