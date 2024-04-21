@@ -25,7 +25,7 @@ resource "aws_instance" "myapp_instance" {
   instance_type = var.instance_type
 
   subnet_id              = var.subnet_id #module.myapp-subnet.subnet-output.id
-  vpc_security_group_ids = [aws_default_security_group.default_sg.id]
+  vpc_security_group_ids = [aws_security_group.myapp_sg.id]
   #[aws_default_security_group.default_sg.id]
   availability_zone = var.avail_zone
 
@@ -43,15 +43,15 @@ resource "aws_instance" "myapp_instance" {
 
 
 # creating security group
-resource "aws_default_security_group" "default_sg" {
+resource "aws_security_group" "myapp_sg" {
   vpc_id = var.vpc_id
   tags = {
-    Name : "${var.env_prefix}-sg"
+    Name : "myapp-sg"
   }
 }
 
 resource "aws_vpc_security_group_ingress_rule" "allow_myapp_ssh" {
-  security_group_id = aws_default_security_group.default_sg.id
+  security_group_id = aws_security_group.myapp_sg.id
   cidr_ipv4         = var.my_ip
   from_port         = 22
   ip_protocol       = "tcp"
@@ -60,7 +60,7 @@ resource "aws_vpc_security_group_ingress_rule" "allow_myapp_ssh" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "allow_myapp_traffic" {
-  security_group_id = aws_default_security_group.default_sg.id
+  security_group_id = aws_security_group.myapp_sg.id
   from_port         = 8080
   ip_protocol       = "tcp"
   to_port           = 8080
@@ -69,7 +69,7 @@ resource "aws_vpc_security_group_ingress_rule" "allow_myapp_traffic" {
 }
 
 resource "aws_vpc_security_group_egress_rule" "allow_myapp_all_traffic" {
-  security_group_id = aws_default_security_group.default_sg.id
+  security_group_id = aws_security_group.myapp_sg.id
   cidr_ipv4         = "0.0.0.0/0"
   # from_port         = 0
   ip_protocol = "-1"
